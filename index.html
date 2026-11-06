@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>端数すっきり！かんたん割り勘計算機</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 440px;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+      border: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      text-align: center;
+      margin-bottom: 6px;
+      color: var(--primary);
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fff;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+
+    .unit {
+      position: absolute;
+      right: 12px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .radio-btn {
+      flex: 1;
+      text-align: center;
+      padding: 10px 4px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .radio-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .result-card {
+      margin-top: 24px;
+      background: #f1f5f9;
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .result-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .result-label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .result-val-main {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .result-val-sub {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .copy-btn {
+      margin-top: 18px;
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .copy-btn:hover {
+      opacity: 0.9;
+    }
+
+    .toast {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--accent);
+      margin-top: 8px;
+      min-height: 18px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🍺 かんたん割り勘計算機</h1>
+    <p class="subtitle">端数の小銭トラブルをスッキリ解消！</p>
+
+    <div class="form-group">
+      <label for="totalAmount">お会計の総額</label>
+      <div class="input-wrap">
+        <input type="number" id="totalAmount" placeholder="例: 12500" min="0" step="10">
+        <span class="unit">円</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="peopleCount">人数</label>
+      <div class="input-wrap">
+        <input type="number" id="peopleCount" placeholder="例: 4" min="1" step="1" value="3">
+        <span class="unit">人</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>丸め単位（端数まるめ）</label>
+      <div class="radio-group" id="roundGroup">
+        <div class="radio-btn active" data-unit="100">100円単位</div>
+        <div class="radio-btn" data-unit="500">500円単位</div>
+        <div class="radio-btn" data-unit="1000">1000円単位</div>
+        <div class="radio-btn" data-unit="1">丸めなし</div>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <div class="result-row">
+        <span class="result-label">1人あたりの支払い</span>
+        <span class="result-val-main" id="perPersonDisplay">0 円</span>
+      </div>
+      <hr style="border:0; border-top: 1px dashed var(--border); margin: 10px 0;">
+      <div class="result-row">
+        <span class="result-label">集金の合計</span>
+        <span class="result-val-sub" id="collectedTotalDisplay">0 円</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label" id="diffLabel">過不足（おつり/幹事負担）</span>
+        <span class="result-val-sub" id="diffDisplay">±0 円</span>
+      </div>
+    </div>
+
+    <button class="copy-btn" id="copyBtn">📋 LINE共有用の結果をコピー</button>
+    <div class="toast" id="toastMsg"></div>
+  </div>
+
+  <script>
+    const totalAmountInput = document.getElementById('totalAmount');
+    const peopleCountInput = document.getElementById('peopleCount');
+    const perPersonDisplay = document.getElementById('perPersonDisplay');
+    const collectedTotalDisplay = document.getElementById('collectedTotalDisplay');
+    const diffDisplay = document.getElementById('diffDisplay');
+    const diffLabel = document.getElementById('diffLabel');
+    const roundBtns = document.querySelectorAll('.radio-btn');
+    const copyBtn = document.getElementById('copyBtn');
+    const toastMsg = document.getElementById('toastMsg');
+
+    let roundUnit = 100;
+
+    roundBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        roundBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        roundUnit = parseInt(btn.getAttribute('data-unit'), 10);
+        calculate();
+      });
+    });
+
+    [totalAmountInput, peopleCountInput].forEach(input => {
+      input.addEventListener('input', calculate);
+    });
+
+    function calculate() {
+      const total = parseFloat(totalAmountInput.value) || 0;
+      const count = parseInt(peopleCountInput.value, 10) || 0;
+
+      if (total <= 0 || count <= 0) {
+        perPersonDisplay.textContent = '0 円';
+        collectedTotalDisplay.textContent = '0 円';
+        diffDisplay.textContent = '±0 円';
+        diffLabel.textContent = '過不足';
+        return;
+      }
+
+      const exactPerPerson = total / count;
+      let perPerson = 0;
+
+      if (roundUnit === 1) {
+        perPerson = Math.ceil(exactPerPerson);
+      } else {
+        perPerson = Math.ceil(exactPerPerson / roundUnit) * roundUnit;
+      }
+
+      const collectedTotal = perPerson * count;
+      const diff = collectedTotal - total;
+
+      perPersonDisplay.textContent = `${perPerson.toLocaleString()} 円`;
+      collectedTotalDisplay.textContent = `${collectedTotal.toLocaleString()} 円`;
+
+      if (diff > 0) {
+        diffLabel.textContent = 'あまり（おつり・幹事の余り）';
+        diffDisplay.textContent = `+${diff.toLocaleString()} 円`;
+        diffDisplay.style.color = '#10b981';
+      } else if (diff < 0) {
+        diffLabel.textContent = '不足（幹事の自己負担）';
+        diffDisplay.textContent = `${diff.toLocaleString()} 円`;
+        diffDisplay.style.color = '#ef4444';
+      } else {
+        diffLabel.textContent = '過不足なし';
+        diffDisplay.textContent = 'ぴったり 0 円';
+        diffDisplay.style.color = 'var(--text)';
+      }
+    }
+
+    copyBtn.addEventListener('click', () => {
+      const total = totalAmountInput.value || 0;
+      const count = peopleCountInput.value || 0;
+      const perPerson = perPersonDisplay.textContent;
+      const diffText = diffDisplay.textContent;
+      const labelText = diffLabel.textContent;
+
+      if (!total || !count || total <= 0) {
+        toastMsg.textContent = '金額と人数を入力してください';
+        toastMsg.style.color = '#ef4444';
+        setTimeout(() => toastMsg.textContent = '', 2000);
+        return;
+      }
+
+      const shareText = `【割り勘の連絡】\nお会計合計: ${Number(total).toLocaleString()}円 (${count}名)\n👉 1人あたり: ${perPerson}\n(${labelText}: ${diffText})\nよろしくお願いします！`;
+
+      navigator.clipboard.writeText(shareText).then(() => {
+        toastMsg.textContent = '✅ LINE用のメッセージをコピーしました！';
+        toastMsg.style.color = '#10b981';
+        setTimeout(() => toastMsg.textContent = '', 2500);
+      }).catch(() => {
+        toastMsg.textContent = 'コピーに失敗しました';
+        toastMsg.style.color = '#ef4444';
+      });
+    });
+
+    calculate();
+  </script>
+</body>
+</html>
